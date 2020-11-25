@@ -4,10 +4,11 @@
 #
 # $Log:$
 #
-CC=  gcc  # gcc or g++
 
-CFLAGS=-g -Wall -DNORMALUNIX -DLINUX # -DUSEASM 
-LDFLAGS=-L/usr/X11R6/lib
+
+CFLAGS+= -Wall -DNORMALUNIX -DLINUX -DSNDSERV -DSNDSRV # -DUSEASM
+
+LDFLAGS+=-L$(SDKTARGETSYSROOT)/usr/X11R6/lib -L$(SDKTARGETSYSROOT)/usr/lib/i386-linux-gnu/ -L$(SDKTARGETSYSROOT)/usr/lib32/
 LIBS=-lXext -lX11 -lnsl -lm
 
 # subdirectory for objects
@@ -81,14 +82,17 @@ all:	 $(O)/linuxxdoom
 
 clean:
 	rm -f *.o *~ *.flc
-	rm -f linux/*
+	rm -rf linux
 
 $(O)/linuxxdoom:	$(OBJS) $(O)/i_main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) $(O)/i_main.o \
 	-o $(O)/linuxxdoom $(LIBS)
 
-$(O)/%.o:	%.c
+$(O)/%.o:	%.c | object
 	$(CC) $(CFLAGS) -c $< -o $@
+
+object:
+	mkdir -p $(O)
 
 #############################################################
 #
