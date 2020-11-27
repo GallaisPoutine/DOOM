@@ -5,6 +5,10 @@
 # $Log:$
 #
 
+ifeq ($(NOWARNUNUSED),1)
+	WARNFLAGS += -Wno-unused -Wunused-const-variable=0
+	CFLAGS += $(WARNFLAGS)
+endif
 
 CFLAGS+= -Wall -DNORMALUNIX -DLINUX -DSNDSERV -DSNDSRV # -DUSEASM
 
