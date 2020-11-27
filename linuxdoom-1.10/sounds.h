@@ -74,13 +74,13 @@ typedef struct
 
     // lump number of music
     int		lumpnum;
-    
+
     // music data
     void*	data;
 
     // music handle once registered
     int handle;
-    
+
 } musicinfo_t;
 
 
