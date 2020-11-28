@@ -27,7 +27,7 @@ rcsid[] = "$Id: g_game.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 #include <string.h>
 #include <stdlib.h>
 
-#include "doomdef.h" 
+#include "doomdef.h"
 #include "doomstat.h"
 
 #include "z_zone.h"
@@ -54,7 +54,7 @@ rcsid[] = "$Id: g_game.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
 #include "w_wad.h"
 
-#include "p_local.h" 
+#include "p_local.h"
 
 #include "s_sound.h"
 
@@ -76,48 +76,48 @@ rcsid[] = "$Id: g_game.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
 
 
 
-boolean	G_CheckDemoStatus (void); 
-void	G_ReadDemoTiccmd (ticcmd_t* cmd); 
-void	G_WriteDemoTiccmd (ticcmd_t* cmd); 
-void	G_PlayerReborn (int player); 
-void	G_InitNew (skill_t skill, int episode, int map); 
- 
-void	G_DoReborn (int playernum); 
- 
-void	G_DoLoadLevel (void); 
-void	G_DoNewGame (void); 
-void	G_DoLoadGame (void); 
-void	G_DoPlayDemo (void); 
-void	G_DoCompleted (void); 
-void	G_DoVictory (void); 
-void	G_DoWorldDone (void); 
-void	G_DoSaveGame (void); 
- 
- 
-gameaction_t    gameaction; 
-gamestate_t     gamestate; 
-skill_t         gameskill; 
+boolean	G_CheckDemoStatus (void);
+void	G_ReadDemoTiccmd (ticcmd_t* cmd);
+void	G_WriteDemoTiccmd (ticcmd_t* cmd);
+void	G_PlayerReborn (int player);
+void	G_InitNew (skill_t skill, int episode, int map);
+
+void	G_DoReborn (int playernum);
+
+void	G_DoLoadLevel (void);
+void	G_DoNewGame (void);
+void	G_DoLoadGame (void);
+void	G_DoPlayDemo (void);
+void	G_DoCompleted (void);
+void	G_DoVictory (void);
+void	G_DoWorldDone (void);
+void	G_DoSaveGame (void);
+
+
+gameaction_t    gameaction;
+gamestate_t     gamestate;
+skill_t         gameskill;
 boolean		respawnmonsters;
-int             gameepisode; 
-int             gamemap; 
- 
-boolean         paused; 
-boolean         sendpause;             	// send a pause event next tic 
-boolean         sendsave;             	// send a save event next tic 
-boolean         usergame;               // ok to save / end game 
- 
-boolean         timingdemo;             // if true, exit with report on completion 
-boolean         nodrawers;              // for comparative timing purposes 
-boolean         noblit;                 // for comparative timing purposes 
-int             starttime;          	// for comparative timing purposes  	 
- 
-boolean         viewactive; 
- 
-boolean         deathmatch;           	// only if started as net death 
-boolean         netgame;                // only true if packets are broadcast 
-boolean         playeringame[MAXPLAYERS]; 
-player_t        players[MAXPLAYERS]; 
- 
+int             gameepisode;
+int             gamemap;
+
+boolean         paused;
+boolean         sendpause;		// send a pause event next tic
+boolean         sendsave;		// send a save event next tic
+boolean         usergame;               // ok to save / end game
+
+boolean         timingdemo;             // if true, exit with report on completion
+boolean         nodrawers;              // for comparative timing purposes
+boolean         noblit;                 // for comparative timing purposes
+int             starttime;		// for comparative timing purposes
+
+boolean         viewactive;
+
+boolean         deathmatch;		// only if started as net death
+boolean         netgame;                // only true if packets are broadcast
+boolean         playeringame[MAXPLAYERS];
+player_t        players[MAXPLAYERS];
+
 int             consoleplayer;          // player taking events and displaying 
 int             displayplayer;          // view being displayed 
 int             gametic; 
@@ -1167,114 +1167,114 @@ void G_WorldDone (void)
 	    break;
 	}
     }
-} 
- 
-void G_DoWorldDone (void) 
-{        
-    gamestate = GS_LEVEL; 
-    gamemap = wminfo.next+1; 
-    G_DoLoadLevel (); 
-    gameaction = ga_nothing; 
-    viewactive = true; 
-} 
- 
+}
+
+void G_DoWorldDone (void)
+{
+    gamestate = GS_LEVEL;
+    gamemap = wminfo.next+1;
+    G_DoLoadLevel ();
+    gameaction = ga_nothing;
+    viewactive = true;
+}
+
 
 
 //
 // G_InitFromSavegame
-// Can be called by the startup code or the menu task. 
+// Can be called by the startup code or the menu task.
 //
 extern boolean setsizeneeded;
 void R_ExecuteSetViewSize (void);
 
 char	savename[256];
 
-void G_LoadGame (char* name) 
-{ 
-    strcpy (savename, name); 
-    gameaction = ga_loadgame; 
-} 
- 
-#define VERSIONSIZE		16 
+void G_LoadGame (char* name)
+{
+    strcpy (savename, name);
+    gameaction = ga_loadgame;
+}
+
+#define VERSIONSIZE		16
 
 
-void G_DoLoadGame (void) 
-{ 
-    int		length; 
-    int		i; 
-    int		a,b,c; 
-    char	vcheck[VERSIONSIZE]; 
-	 
-    gameaction = ga_nothing; 
-	 
-    length = M_ReadFile (savename, &savebuffer); 
+void G_DoLoadGame (void)
+{
+    int		length;
+    int		i;
+    int		a,b,c;
+    char	vcheck[VERSIONSIZE];
+
+    gameaction = ga_nothing;
+
+    length = M_ReadFile (savename, &savebuffer);
     save_p = savebuffer + SAVESTRINGSIZE;
-    
-    // skip the description field 
-    memset (vcheck,0,sizeof(vcheck)); 
-    sprintf (vcheck,"version %i",VERSION); 
-    if (strcmp (save_p, vcheck)) 
-	return;				// bad version 
-    save_p += VERSIONSIZE; 
-			 
-    gameskill = *save_p++; 
-    gameepisode = *save_p++; 
-    gamemap = *save_p++; 
-    for (i=0 ; i<MAXPLAYERS ; i++) 
-	playeringame[i] = *save_p++; 
 
-    // load a base level 
-    G_InitNew (gameskill, gameepisode, gamemap); 
- 
-    // get the times 
-    a = *save_p++; 
-    b = *save_p++; 
-    c = *save_p++; 
-    leveltime = (a<<16) + (b<<8) + c; 
-	 
+    // skip the description field
+    memset (vcheck,0,sizeof(vcheck));
+    sprintf (vcheck,"version %i",VERSION);
+    if (strcmp (save_p, vcheck))
+	return;				// bad version
+    save_p += VERSIONSIZE;
+
+    gameskill = *save_p++;
+    gameepisode = *save_p++;
+    gamemap = *save_p++;
+    for (i=0 ; i<MAXPLAYERS ; i++)
+	playeringame[i] = *save_p++;
+
+    // load a base level
+    G_InitNew (gameskill, gameepisode, gamemap);
+
+    // get the times
+    a = *save_p++;
+    b = *save_p++;
+    c = *save_p++;
+    leveltime = (a<<16) + (b<<8) + c;
+
     // dearchive all the modifications
-    P_UnArchivePlayers (); 
-    P_UnArchiveWorld (); 
-    P_UnArchiveThinkers (); 
-    P_UnArchiveSpecials (); 
- 
-    if (*save_p != 0x1d) 
+    P_UnArchivePlayers ();
+    P_UnArchiveWorld ();
+    P_UnArchiveThinkers ();
+    P_UnArchiveSpecials ();
+
+    if (*save_p != 0x1d)
 	I_Error ("Bad savegame");
-    
-    // done 
-    Z_Free (savebuffer); 
- 
+
+    // done
+    Z_Free (savebuffer);
+
     if (setsizeneeded)
 	R_ExecuteSetViewSize ();
-    
+
     // draw the pattern into the back screen
-    R_FillBackScreen ();   
-} 
- 
+    R_FillBackScreen ();
+}
+
 
 //
 // G_SaveGame
 // Called by the menu task.
-// Description is a 24 byte text string 
+// Description is a 24 byte text string
 //
 void
 G_SaveGame
 ( int	slot,
-  char*	description ) 
-{ 
-    savegameslot = slot; 
-    strcpy (savedescription, description); 
-    sendsave = true; 
-} 
- 
-void G_DoSaveGame (void) 
-{ 
-    char	name[100]; 
-    char	name2[VERSIONSIZE]; 
-    char*	description; 
-    int		length; 
-    int		i; 
-	
+  char*	description )
+{
+    savegameslot = slot;
+    strcpy (savedescription, description);
+    sendsave = true;
+}
+
+void G_DoSaveGame (void)
+{
+    char	name[100];
+    char	name2[VERSIONSIZE];
+    char*	description;
+    int		length;
+    int		i;
+
     if (M_CheckParm("-cdrom"))
 	sprintf(name,"c:\\doomdata\\"SAVEGAMENAME"%d.dsg",savegameslot);
     else
