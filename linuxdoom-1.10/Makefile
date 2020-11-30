@@ -10,10 +10,10 @@ ifeq ($(NOWARNUNUSED),1)
 	CFLAGS += $(WARNFLAGS)
 endif
 
-CFLAGS+= -Wall -DNORMALUNIX -DLINUX -DSNDSERV -DSNDSRV # -DUSEASM
+CFLAGS+= -Wall -DNORMALUNIX -DLINUX # -DSNDSERV -DSNDSRV -DUSEASM
 
 LDFLAGS+=-L$(SDKTARGETSYSROOT)/usr/X11R6/lib -L$(SDKTARGETSYSROOT)/usr/lib/i386-linux-gnu/ -L$(SDKTARGETSYSROOT)/usr/lib32/
-LIBS=-lXext -lX11 -lnsl -lm
+LIBS=-lXext -lX11 -lnsl -lm -lwayland-client
 
 # subdirectory for objects
 O=linux
