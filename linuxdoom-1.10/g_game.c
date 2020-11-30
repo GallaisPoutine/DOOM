@@ -1,4 +1,4 @@
-// Emacs style mode select   -*- C++ -*- 
+// Emacs style mode select   -*- C++ -*-
 //-----------------------------------------------------------------------------
 //
 // $Id:$
@@ -118,333 +118,333 @@ boolean         netgame;                // only true if packets are broadcast
 boolean         playeringame[MAXPLAYERS];
 player_t        players[MAXPLAYERS];
 
-int             consoleplayer;          // player taking events and displaying 
-int             displayplayer;          // view being displayed 
-int             gametic; 
-int             levelstarttic;          // gametic at level start 
-int             totalkills, totalitems, totalsecret;    // for intermission 
- 
-char            demoname[32]; 
-boolean         demorecording; 
-boolean         demoplayback; 
-boolean		netdemo; 
+int             consoleplayer;          // player taking events and displaying
+int             displayplayer;          // view being displayed
+int             gametic;
+int             levelstarttic;          // gametic at level start
+int             totalkills, totalitems, totalsecret;    // for intermission
+
+char            demoname[32];
+boolean         demorecording;
+boolean         demoplayback;
+boolean		netdemo;
 byte*		demobuffer;
 byte*		demo_p;
-byte*		demoend; 
-boolean         singledemo;            	// quit after playing a demo from cmdline 
- 
-boolean         precache = true;        // if true, load all graphics at start 
- 
-wbstartstruct_t wminfo;               	// parms for world map / intermission 
- 
-short		consistancy[MAXPLAYERS][BACKUPTICS]; 
- 
+byte*		demoend;
+boolean         singledemo;		// quit after playing a demo from cmdline
+
+boolean         precache = true;        // if true, load all graphics at start
+
+wbstartstruct_t wminfo;			// parms for world map / intermission
+
+short		consistancy[MAXPLAYERS][BACKUPTICS];
+
 byte*		savebuffer;
- 
- 
-// 
-// controls (have defaults) 
-// 
+
+
+//
+// controls (have defaults)
+//
 int             key_right;
 int		key_left;
 
 int		key_up;
-int		key_down; 
+int		key_down;
 int             key_strafeleft;
-int		key_straferight; 
+int		key_straferight;
 int             key_fire;
 int		key_use;
 int		key_strafe;
-int		key_speed; 
- 
-int             mousebfire; 
-int             mousebstrafe; 
-int             mousebforward; 
- 
-int             joybfire; 
-int             joybstrafe; 
-int             joybuse; 
-int             joybspeed; 
- 
- 
- 
-#define MAXPLMOVE		(forwardmove[1]) 
- 
+int		key_speed;
+
+int             mousebfire;
+int             mousebstrafe;
+int             mousebforward;
+
+int             joybfire;
+int             joybstrafe;
+int             joybuse;
+int             joybspeed;
+
+
+
+#define MAXPLMOVE		(forwardmove[1])
+
 #define TURBOTHRESHOLD	0x32
 
-fixed_t		forwardmove[2] = {0x19, 0x32}; 
-fixed_t		sidemove[2] = {0x18, 0x28}; 
-fixed_t		angleturn[3] = {640, 1280, 320};	// + slow turn 
+fixed_t		forwardmove[2] = {0x19, 0x32};
+fixed_t		sidemove[2] = {0x18, 0x28};
+fixed_t		angleturn[3] = {640, 1280, 320};	// + slow turn
 
-#define SLOWTURNTICS	6 
- 
-#define NUMKEYS		256 
+#define SLOWTURNTICS	6
 
-boolean         gamekeydown[NUMKEYS]; 
-int             turnheld;				// for accelerative turning 
- 
-boolean		mousearray[4]; 
+#define NUMKEYS		256
+
+boolean         gamekeydown[NUMKEYS];
+int             turnheld;				// for accelerative turning
+
+boolean		mousearray[4];
 boolean*	mousebuttons = &mousearray[1];		// allow [-1]
 
-// mouse values are used once 
+// mouse values are used once
 int             mousex;
-int		mousey;         
+int		mousey;
 
 int             dclicktime;
 int		dclickstate;
-int		dclicks; 
+int		dclicks;
 int             dclicktime2;
 int		dclickstate2;
 int		dclicks2;
 
-// joystick values are repeated 
+// joystick values are repeated
 int             joyxmove;
 int		joyymove;
-boolean         joyarray[5]; 
-boolean*	joybuttons = &joyarray[1];		// allow [-1] 
- 
-int		savegameslot; 
-char		savedescription[32]; 
- 
- 
+boolean         joyarray[5];
+boolean*	joybuttons = &joyarray[1];		// allow [-1]
+
+int		savegameslot;
+char		savedescription[32];
+
+
 #define	BODYQUESIZE	32
 
-mobj_t*		bodyque[BODYQUESIZE]; 
-int		bodyqueslot; 
- 
+mobj_t*		bodyque[BODYQUESIZE];
+int		bodyqueslot;
+
 void*		statcopy;				// for statistics driver
- 
- 
- 
-int G_CmdChecksum (ticcmd_t* cmd) 
-{ 
+
+
+
+int G_CmdChecksum (ticcmd_t* cmd)
+{
     int		i;
-    int		sum = 0; 
-	 
-    for (i=0 ; i< sizeof(*cmd)/4 - 1 ; i++) 
-	sum += ((int *)cmd)[i]; 
-		 
-    return sum; 
-} 
- 
+    int		sum = 0;
+
+    for (i=0 ; i< sizeof(*cmd)/4 - 1 ; i++)
+	sum += ((int *)cmd)[i];
+
+    return sum;
+}
+
 
 //
 // G_BuildTiccmd
 // Builds a ticcmd from all of the available inputs
-// or reads it from the demo buffer. 
-// If recording a demo, write it out 
-// 
-void G_BuildTiccmd (ticcmd_t* cmd) 
-{ 
-    int		i; 
+// or reads it from the demo buffer.
+// If recording a demo, write it out
+//
+void G_BuildTiccmd (ticcmd_t* cmd)
+{
+    int		i;
     boolean	strafe;
-    boolean	bstrafe; 
+    boolean	bstrafe;
     int		speed;
-    int		tspeed; 
+    int		tspeed;
     int		forward;
     int		side;
-    
+
     ticcmd_t*	base;
 
     base = I_BaseTiccmd ();		// empty, or external driver
-    memcpy (cmd,base,sizeof(*cmd)); 
-	
-    cmd->consistancy = 
-	consistancy[consoleplayer][maketic%BACKUPTICS]; 
+    memcpy (cmd,base,sizeof(*cmd));
 
- 
-    strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe] 
-	|| joybuttons[joybstrafe]; 
+    cmd->consistancy =
+	consistancy[consoleplayer][maketic%BACKUPTICS];
+
+
+    strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe]
+	|| joybuttons[joybstrafe];
     speed = gamekeydown[key_speed] || joybuttons[joybspeed];
- 
+
     forward = side = 0;
-    
+
     // use two stage accelerative turning
     // on the keyboard and joystick
     if (joyxmove < 0
-	|| joyxmove > 0  
+	|| joyxmove > 0
 	|| gamekeydown[key_right]
-	|| gamekeydown[key_left]) 
-	turnheld += ticdup; 
-    else 
-	turnheld = 0; 
+	|| gamekeydown[key_left])
+	turnheld += ticdup;
+    else
+	turnheld = 0;
 
-    if (turnheld < SLOWTURNTICS) 
-	tspeed = 2;             // slow turn 
-    else 
+    if (turnheld < SLOWTURNTICS)
+	tspeed = 2;             // slow turn
+    else
 	tspeed = speed;
-    
+
     // let movement keys cancel each other out
-    if (strafe) 
-    { 
-	if (gamekeydown[key_right]) 
+    if (strafe)
+    {
+	if (gamekeydown[key_right])
 	{
 	    // fprintf(stderr, "strafe right\n");
-	    side += sidemove[speed]; 
+	    side += sidemove[speed];
 	}
-	if (gamekeydown[key_left]) 
+	if (gamekeydown[key_left])
 	{
 	    //	fprintf(stderr, "strafe left\n");
-	    side -= sidemove[speed]; 
+	    side -= sidemove[speed];
 	}
-	if (joyxmove > 0) 
-	    side += sidemove[speed]; 
-	if (joyxmove < 0) 
-	    side -= sidemove[speed]; 
- 
-    } 
-    else 
-    { 
-	if (gamekeydown[key_right]) 
-	    cmd->angleturn -= angleturn[tspeed]; 
-	if (gamekeydown[key_left]) 
-	    cmd->angleturn += angleturn[tspeed]; 
-	if (joyxmove > 0) 
-	    cmd->angleturn -= angleturn[tspeed]; 
-	if (joyxmove < 0) 
-	    cmd->angleturn += angleturn[tspeed]; 
-    } 
- 
-    if (gamekeydown[key_up]) 
+	if (joyxmove > 0)
+	    side += sidemove[speed];
+	if (joyxmove < 0)
+	    side -= sidemove[speed];
+
+    }
+    else
+    {
+	if (gamekeydown[key_right])
+	    cmd->angleturn -= angleturn[tspeed];
+	if (gamekeydown[key_left])
+	    cmd->angleturn += angleturn[tspeed];
+	if (joyxmove > 0)
+	    cmd->angleturn -= angleturn[tspeed];
+	if (joyxmove < 0)
+	    cmd->angleturn += angleturn[tspeed];
+    }
+
+    if (gamekeydown[key_up])
     {
 	// fprintf(stderr, "up\n");
-	forward += forwardmove[speed]; 
+	forward += forwardmove[speed];
     }
-    if (gamekeydown[key_down]) 
+    if (gamekeydown[key_down])
     {
 	// fprintf(stderr, "down\n");
-	forward -= forwardmove[speed]; 
+	forward -= forwardmove[speed];
     }
-    if (joyymove < 0) 
-	forward += forwardmove[speed]; 
-    if (joyymove > 0) 
-	forward -= forwardmove[speed]; 
-    if (gamekeydown[key_straferight]) 
-	side += sidemove[speed]; 
-    if (gamekeydown[key_strafeleft]) 
-	side -= sidemove[speed];
-    
-    // buttons
-    cmd->chatchar = HU_dequeueChatChar(); 
- 
-    if (gamekeydown[key_fire] || mousebuttons[mousebfire] 
-	|| joybuttons[joybfire]) 
-	cmd->buttons |= BT_ATTACK; 
- 
-    if (gamekeydown[key_use] || joybuttons[joybuse] ) 
-    { 
-	cmd->buttons |= BT_USE;
-	// clear double clicks if hit use button 
-	dclicks = 0;                   
-    } 
-
-    // chainsaw overrides 
-    for (i=0 ; i<NUMWEAPONS-1 ; i++)        
-	if (gamekeydown['1'+i]) 
-	{ 
-	    cmd->buttons |= BT_CHANGE; 
-	    cmd->buttons |= i<<BT_WEAPONSHIFT; 
-	    break; 
-	}
-    
-    // mouse
-    if (mousebuttons[mousebforward]) 
+    if (joyymove < 0)
 	forward += forwardmove[speed];
-    
-    // forward double click
-    if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 ) 
-    { 
-	dclickstate = mousebuttons[mousebforward]; 
-	if (dclickstate) 
-	    dclicks++; 
-	if (dclicks == 2) 
-	{ 
-	    cmd->buttons |= BT_USE; 
-	    dclicks = 0; 
-	} 
-	else 
-	    dclicktime = 0; 
-    } 
-    else 
-    { 
-	dclicktime += ticdup; 
-	if (dclicktime > 20) 
-	{ 
-	    dclicks = 0; 
-	    dclickstate = 0; 
-	} 
+    if (joyymove > 0)
+	forward -= forwardmove[speed];
+    if (gamekeydown[key_straferight])
+	side += sidemove[speed];
+    if (gamekeydown[key_strafeleft])
+	side -= sidemove[speed];
+
+    // buttons
+    cmd->chatchar = HU_dequeueChatChar();
+
+    if (gamekeydown[key_fire] || mousebuttons[mousebfire]
+	|| joybuttons[joybfire])
+	cmd->buttons |= BT_ATTACK;
+
+    if (gamekeydown[key_use] || joybuttons[joybuse] )
+    {
+	cmd->buttons |= BT_USE;
+	// clear double clicks if hit use button
+	dclicks = 0;
     }
-    
+
+    // chainsaw overrides
+    for (i=0 ; i<NUMWEAPONS-1 ; i++)
+	if (gamekeydown['1'+i])
+	{
+	    cmd->buttons |= BT_CHANGE;
+	    cmd->buttons |= i<<BT_WEAPONSHIFT;
+	    break;
+	}
+
+    // mouse
+    if (mousebuttons[mousebforward])
+	forward += forwardmove[speed];
+
+    // forward double click
+    if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1 )
+    {
+	dclickstate = mousebuttons[mousebforward];
+	if (dclickstate)
+	    dclicks++;
+	if (dclicks == 2)
+	{
+	    cmd->buttons |= BT_USE;
+	    dclicks = 0;
+	}
+	else
+	    dclicktime = 0;
+    }
+    else
+    {
+	dclicktime += ticdup;
+	if (dclicktime > 20)
+	{
+	    dclicks = 0;
+	    dclickstate = 0;
+	}
+    }
+
     // strafe double click
     bstrafe =
-	mousebuttons[mousebstrafe] 
-	|| joybuttons[joybstrafe]; 
-    if (bstrafe != dclickstate2 && dclicktime2 > 1 ) 
-    { 
-	dclickstate2 = bstrafe; 
-	if (dclickstate2) 
-	    dclicks2++; 
-	if (dclicks2 == 2) 
-	{ 
-	    cmd->buttons |= BT_USE; 
-	    dclicks2 = 0; 
-	} 
-	else 
-	    dclicktime2 = 0; 
-    } 
-    else 
-    { 
-	dclicktime2 += ticdup; 
-	if (dclicktime2 > 20) 
-	{ 
-	    dclicks2 = 0; 
-	    dclickstate2 = 0; 
-	} 
-    } 
- 
-    forward += mousey; 
-    if (strafe) 
-	side += mousex*2; 
-    else 
-	cmd->angleturn -= mousex*0x8; 
+	mousebuttons[mousebstrafe]
+	|| joybuttons[joybstrafe];
+    if (bstrafe != dclickstate2 && dclicktime2 > 1 )
+    {
+	dclickstate2 = bstrafe;
+	if (dclickstate2)
+	    dclicks2++;
+	if (dclicks2 == 2)
+	{
+	    cmd->buttons |= BT_USE;
+	    dclicks2 = 0;
+	}
+	else
+	    dclicktime2 = 0;
+    }
+    else
+    {
+	dclicktime2 += ticdup;
+	if (dclicktime2 > 20)
+	{
+	    dclicks2 = 0;
+	    dclickstate2 = 0;
+	}
+    }
 
-    mousex = mousey = 0; 
-	 
-    if (forward > MAXPLMOVE) 
-	forward = MAXPLMOVE; 
-    else if (forward < -MAXPLMOVE) 
-	forward = -MAXPLMOVE; 
-    if (side > MAXPLMOVE) 
-	side = MAXPLMOVE; 
-    else if (side < -MAXPLMOVE) 
-	side = -MAXPLMOVE; 
- 
-    cmd->forwardmove += forward; 
+    forward += mousey;
+    if (strafe)
+	side += mousex*2;
+    else
+	cmd->angleturn -= mousex*0x8;
+
+    mousex = mousey = 0;
+
+    if (forward > MAXPLMOVE)
+	forward = MAXPLMOVE;
+    else if (forward < -MAXPLMOVE)
+	forward = -MAXPLMOVE;
+    if (side > MAXPLMOVE)
+	side = MAXPLMOVE;
+    else if (side < -MAXPLMOVE)
+	side = -MAXPLMOVE;
+
+    cmd->forwardmove += forward;
     cmd->sidemove += side;
-    
+
     // special buttons
-    if (sendpause) 
-    { 
-	sendpause = false; 
-	cmd->buttons = BT_SPECIAL | BTS_PAUSE; 
-    } 
- 
-    if (sendsave) 
-    { 
-	sendsave = false; 
-	cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (savegameslot<<BTS_SAVESHIFT); 
-    } 
-} 
- 
+    if (sendpause)
+    {
+	sendpause = false;
+	cmd->buttons = BT_SPECIAL | BTS_PAUSE;
+    }
+
+    if (sendsave)
+    {
+	sendsave = false;
+	cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (savegameslot<<BTS_SAVESHIFT);
+    }
+}
+
 
 //
-// G_DoLoadLevel 
+// G_DoLoadLevel
 //
-extern  gamestate_t     wipegamestate; 
- 
-void G_DoLoadLevel (void) 
-{ 
-    int             i; 
+extern  gamestate_t     wipegamestate;
+
+void G_DoLoadLevel (void)
+{
+    int             i;
 
     // Set the sky map.
     // First thing, we have a dummy sky texture name,
@@ -468,71 +468,71 @@ void G_DoLoadLevel (void)
     }
 
     levelstarttic = gametic;        // for time calculation
-    
-    if (wipegamestate == GS_LEVEL) 
-	wipegamestate = -1;             // force a wipe 
 
-    gamestate = GS_LEVEL; 
+    if (wipegamestate == GS_LEVEL)
+	wipegamestate = -1;             // force a wipe
 
-    for (i=0 ; i<MAXPLAYERS ; i++) 
-    { 
-	if (playeringame[i] && players[i].playerstate == PST_DEAD) 
-	    players[i].playerstate = PST_REBORN; 
-	memset (players[i].frags,0,sizeof(players[i].frags)); 
-    } 
-		 
-    P_SetupLevel (gameepisode, gamemap, 0, gameskill);    
-    displayplayer = consoleplayer;		// view the guy you are playing    
-    starttime = I_GetTime (); 
-    gameaction = ga_nothing; 
+    gamestate = GS_LEVEL;
+
+    for (i=0 ; i<MAXPLAYERS ; i++)
+    {
+	if (playeringame[i] && players[i].playerstate == PST_DEAD)
+	    players[i].playerstate = PST_REBORN;
+	memset (players[i].frags,0,sizeof(players[i].frags));
+    }
+
+    P_SetupLevel (gameepisode, gamemap, 0, gameskill);
+    displayplayer = consoleplayer;		// view the guy you are playing
+    starttime = I_GetTime ();
+    gameaction = ga_nothing;
     Z_CheckHeap ();
-    
+
     // clear cmd building stuff
-    memset (gamekeydown, 0, sizeof(gamekeydown)); 
-    joyxmove = joyymove = 0; 
-    mousex = mousey = 0; 
-    sendpause = sendsave = paused = false; 
-    memset (mousebuttons, 0, sizeof(mousebuttons)); 
-    memset (joybuttons, 0, sizeof(joybuttons)); 
-} 
- 
- 
+    memset (gamekeydown, 0, sizeof(gamekeydown));
+    joyxmove = joyymove = 0;
+    mousex = mousey = 0;
+    sendpause = sendsave = paused = false;
+    memset (mousebuttons, 0, sizeof(mousebuttons));
+    memset (joybuttons, 0, sizeof(joybuttons));
+}
+
+
 //
-// G_Responder  
+// G_Responder
 // Get info needed to make ticcmd_ts for the players.
-// 
-boolean G_Responder (event_t* ev) 
-{ 
+//
+boolean G_Responder (event_t* ev)
+{
     // allow spy mode changes even during the demo
-    if (gamestate == GS_LEVEL && ev->type == ev_keydown 
+    if (gamestate == GS_LEVEL && ev->type == ev_keydown
 	&& ev->data1 == KEY_F12 && (singledemo || !deathmatch) )
     {
-	// spy mode 
-	do 
-	{ 
-	    displayplayer++; 
-	    if (displayplayer == MAXPLAYERS) 
-		displayplayer = 0; 
-	} while (!playeringame[displayplayer] && displayplayer != consoleplayer); 
-	return true; 
+	// spy mode
+	do
+	{
+	    displayplayer++;
+	    if (displayplayer == MAXPLAYERS)
+		displayplayer = 0;
+	} while (!playeringame[displayplayer] && displayplayer != consoleplayer);
+	return true;
     }
-    
+
     // any other key pops up menu if in demos
-    if (gameaction == ga_nothing && !singledemo && 
-	(demoplayback || gamestate == GS_DEMOSCREEN) 
-	) 
-    { 
-	if (ev->type == ev_keydown ||  
-	    (ev->type == ev_mouse && ev->data1) || 
-	    (ev->type == ev_joystick && ev->data1) ) 
-	{ 
-	    M_StartControlPanel (); 
-	    return true; 
-	} 
-	return false; 
-    } 
- 
-    if (gamestate == GS_LEVEL) 
+    if (gameaction == ga_nothing && !singledemo &&
+	(demoplayback || gamestate == GS_DEMOSCREEN)
+	)
+    {
+	if (ev->type == ev_keydown ||
+	    (ev->type == ev_mouse && ev->data1) ||
+	    (ev->type == ev_joystick && ev->data1) )
+	{
+	    M_StartControlPanel ();
+	    return true;
+	}
+	return false;
+    }
+
+    if (gamestate == GS_LEVEL)
     { 
 #if 0 
 	if (devparm && ev->type == ev_keydown && ev->data1 == ';') 
